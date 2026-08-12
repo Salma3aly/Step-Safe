@@ -25,21 +25,20 @@ class _HomeScreenState extends State<HomeScreen> {
     return SafeArea(
       child: CustomScrollView(
         slivers: [
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
-              child: Center(
-                child: ClipRRect(
-                  borderRadius: BorderRadius.all(Radius.circular(16)),
-                  child: Image(
-                    image: AssetImage('assets/images/logo.jpeg'),
-                    width: 120,
-                    height: 120,
-                    fit: BoxFit.cover,
-                  ),
-                ),
+          SliverAppBar(
+            centerTitle: true,
+            title: ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: Image.asset(
+                'assets/images/logo.jpeg',
+                height: 42,
+                width: 42,
+                fit: BoxFit.cover,
               ),
             ),
+            backgroundColor: Colors.transparent,
+            surfaceTintColor: Colors.transparent,
+            elevation: 0,
           ),
           SliverToBoxAdapter(
             child: Padding(

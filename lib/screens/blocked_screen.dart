@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../models/blocked_item.dart';
 import '../theme/app_theme.dart';
 import '../widgets/blocked_list_tile.dart';
@@ -106,8 +107,48 @@ class _BlockedDetailSheet extends StatelessWidget {
 
   const _BlockedDetailSheet({required this.item});
 
+  String get _urgencyTitle {
+    switch (item.urgency) {
+      case UrgencyLevel.callNow:
+        return 'Urgency flag: "Call Now" pressure';
+      case UrgencyLevel.verifyAccount:
+        return 'Urgency flag: "Verify Account" prompt';
+      case UrgencyLevel.none:
+        return '';
+    }
+  }
+
+  String get _urgencyTip {
+    switch (item.urgency) {
+      case UrgencyLevel.callNow:
+        return 'Scammers rush you to call their number so you bypass your judgment. '
+            'This is a hallmark sign of a scam — not a real emergency.';
+      case UrgencyLevel.verifyAccount:
+        return 'Real banks and companies never ask you to verify sensitive account '
+            'details over text or a cold call. Do not reply or click links.';
+      case UrgencyLevel.none:
+        return '';
+    }
+  }
+
+  Future<void> _callFamily(BuildContext context) async {
+    // In a real build these would be editable emergency contacts.
+    final numbers = ['+201001234567', '+201119876543'];
+    var launched = false;
+    for (final n in numbers) {
+      launched = await launchUrl(Uri.parse('tel:$n')) || launched;
+    }
+    if (!launched && context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Could not open the dialer on this device')),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    final showUrgency = item.urgency != UrgencyLevel.none;
+
     return Padding(
       padding: EdgeInsets.only(
         left: 24,
@@ -115,45 +156,106 @@ class _BlockedDetailSheet extends StatelessWidget {
         top: 24,
         bottom: MediaQuery.of(context).viewInsets.bottom + 24,
       ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(item.sender, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w700)),
-          const SizedBox(height: 6),
-          Text('Blocked because: ${item.reason}', style: const TextStyle(color: AppColors.textSecondary)),
-          if (item.preview != null) ...[
-            const SizedBox(height: 14),
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(14),
-              decoration: BoxDecoration(
-                color: AppColors.surface,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Text(item.preview!),
-            ),
-          ],
-          const SizedBox(height: 22),
-          Row(
-            children: [
-              Expanded(
-                child: OutlinedButton(
-                  onPressed: () => Navigator.pop(context),
-                  child: const Text('This was safe'),
+      child: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Center(
+              child: Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFDDDDDD),
+                  borderRadius: BorderRadius.circular(2),
                 ),
               ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: FilledButton(
-                  onPressed: () => Navigator.pop(context),
-                  style: FilledButton.styleFrom(backgroundColor: AppColors.danger),
-                  child: const Text('Confirm spam'),
+            ),
+            const SizedBox(height: 18),
+            Text(item.sender, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w700)),
+            const SizedBox(height: 6),
+            Text('Blocked because: ${item.reason}', style: const TextStyle(color: AppColors.textSecondary)),
+            if (item.preview != null) ...[
+              const SizedBox(height: 14),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: AppColors.surface,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(item.preview!),
+              ),
+            ],
+            if (showUrgency) ...[
+              const SizedBox(height: 16),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: AppColors.dangerLight,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: AppColors.danger.withValues(alpha: 0.3)),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        const Icon(Icons.warning_amber_rounded, color: AppColors.danger, size: 20),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            _urgencyTitle,
+                            style: const TextStyle(
+                              color: AppColors.danger,
+                              fontWeight: FontWeight.w700,
+                              fontSize: 14,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      _urgencyTip,
+                      style: const TextStyle(fontSize: 13, color: AppColors.textPrimary),
+                    ),
+                  ],
                 ),
               ),
             ],
-          ),
-        ],
+            const SizedBox(height: 22),
+            FilledButton.icon(
+              onPressed: () => _callFamily(context),
+              style: FilledButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                minimumSize: const Size.fromHeight(52),
+              ),
+              icon: const Icon(Icons.family_restroom),
+              label: const Text('Call Family'),
+            ),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: const Text('This was safe'),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: FilledButton(
+                    onPressed: () => Navigator.pop(context),
+                    style: FilledButton.styleFrom(backgroundColor: AppColors.danger),
+                    child: const Text('Confirm spam'),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }

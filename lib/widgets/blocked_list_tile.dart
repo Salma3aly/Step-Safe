@@ -41,6 +41,17 @@ class BlockedListTile extends StatelessWidget {
     }
   }
 
+  String? get _urgencyLabel {
+    switch (item.urgency) {
+      case UrgencyLevel.callNow:
+        return 'Urgent Call Now';
+      case UrgencyLevel.verifyAccount:
+        return 'Verify Account';
+      case UrgencyLevel.none:
+        return null;
+    }
+  }
+
   String _timeAgo(DateTime t) {
     final diff = DateTime.now().difference(t);
     if (diff.inMinutes < 60) return '${diff.inMinutes}m ago';
@@ -104,16 +115,46 @@ class BlockedListTile extends StatelessWidget {
                       ),
                     ],
                     const SizedBox(height: 8),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                      decoration: BoxDecoration(
-                        color: _riskBg,
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: Text(
-                        _riskLabel,
-                        style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: _riskColor),
-                      ),
+                    Wrap(
+                      spacing: 6,
+                      runSpacing: 6,
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                          decoration: BoxDecoration(
+                            color: _riskBg,
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Text(
+                            _riskLabel,
+                            style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: _riskColor),
+                          ),
+                        ),
+                        if (_urgencyLabel != null)
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                            decoration: BoxDecoration(
+                              color: AppColors.dangerLight,
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Icon(Icons.warning_amber_rounded, size: 12, color: AppColors.danger),
+                                const SizedBox(width: 4),
+                                Text(
+                                  _urgencyLabel!,
+                                  style: const TextStyle(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w700,
+                                    color: AppColors.danger,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                      ],
                     ),
                   ],
                 ),
